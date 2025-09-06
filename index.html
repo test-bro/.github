@@ -1,334 +1,171 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pinterest Clone</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style type="text/tailwindcss">
-        /* Custom styles for the masonry layout */
-        .masonry-grid {
-            column-count: 1;
-            column-gap: 1rem;
-        }
-
-        @media (min-width: 640px) {
-            .masonry-grid {
-                column-count: 2;
-            }
-        }
-
-        @media (min-width: 768px) {
-            .masonry-grid {
-                column-count: 3;
-            }
-        }
-
-        @media (min-width: 1024px) {
-            .masonry-grid {
-                column-count: 4;
-            }
-        }
-
-        .masonry-grid-item {
-            display: inline-block;
-            width: 100%;
-            margin-bottom: 1rem;
-            break-inside: avoid;
-        }
-
-        /* Custom animation for modals */
-        .modal-enter-active,
-        .modal-leave-active {
-            transition: opacity 0.3s ease;
-        }
-        .modal-enter-from,
-        .modal-leave-to {
-            opacity: 0;
-        }
-    </style>
-    <!-- HTML2Canvas CDN for image generation -->
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <meta charset="UTF-8">
+  <title>Pinterest Style WebApp</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
+<body class="bg-gray-100">
 
-<body class="bg-gray-100 font-sans antialiased">
+  <!-- 🔹 Top Left Profile -->
+  <div id="profileDisplay" class="fixed top-4 left-4 bg-white shadow-lg p-2 rounded-xl flex items-center gap-2 hidden">
+    <img id="profilePicDisplay" class="w-10 h-10 rounded-full border"/>
+    <span id="profileNameDisplay" class="font-semibold"></span>
+  </div>
 
-    <!-- Header -->
-    <header class="bg-white shadow-sm sticky top-0 z-50 p-4">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <h1 class="text-3xl font-bold text-red-600">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 inline-block mr-2" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm-2.031 16.516c-.456 1.134-2.059.98-2.679.529-1.294-.951.688-2.684 1.954-2.618 1.48.077 2.158 1.258.725 2.089-.597.352-.803.111-1.353-.264-.789-.537-1.303-.544-1.503-.434.689 1.579 2.094 2.768 4.708 2.768 2.822 0 4.254-1.742 4.254-4.223 0-2.327-1.594-4.269-4.832-4.269-3.79 0-6.195 2.531-6.195 5.926 0 2.973 1.952 5.253 4.887 5.253 2.684 0 3.737-1.468 3.737-1.468s-.36.969-.472 1.295z"/>
-                </svg>
-                Pinster
-            </h1>
-            <div id="profile-display" class="hidden flex items-center space-x-2">
-                <img id="profile-img-header" class="w-10 h-10 rounded-full object-cover shadow" alt="Profile Photo">
-                <span id="profile-name-header" class="text-lg font-medium text-gray-800"></span>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Content Area -->
-    <main class="max-w-7xl mx-auto py-8 px-4">
-        <div id="image-grid" class="masonry-grid">
-            <!-- Images will be injected here by JavaScript -->
-        </div>
-    </main>
-
-    <!-- User Profile Form Modal -->
-    <div id="profile-modal" class="fixed inset-0 p-4 bg-gray-900 bg-opacity-75 flex items-center justify-center transition-opacity duration-300 z-[100] hidden">
-        <div class="bg-white rounded-lg shadow-2xl p-8 w-full max-w-md scale-95 transition-transform duration-300 overflow-y-auto max-h-full">
-            <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Welcome! Tell us about yourself</h2>
-            <form id="profile-form" class="space-y-4">
-                <div>
-                    <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
-                    <input type="text" id="name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 p-2">
-                </div>
-                <div>
-                    <label for="profile-photo-input" class="block text-sm font-medium text-gray-700">Profile Photo</label>
-                    <input type="file" id="profile-photo-input" accept="image/*" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 p-2">
-                </div>
-                <div>
-                    <label for="phone" class="block text-sm font-medium text-gray-700">Phone (Optional)</label>
-                    <input type="tel" id="phone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 p-2">
-                </div>
-                <div>
-                    <label for="profession" class="block text-sm font-medium text-gray-700">Profession (Optional)</label>
-                    <input type="text" id="profession" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 p-2">
-                </div>
-                <button type="submit" class="w-full bg-red-600 text-white font-bold py-2 px-4 rounded-md hover:bg-red-700 transition-colors shadow">Save Profile</button>
-            </form>
-        </div>
+  <!-- 🔹 User Form Modal (first visit) -->
+  <div id="userFormModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-6 rounded-2xl w-96 shadow-lg">
+      <h2 class="text-xl font-bold mb-4">Enter Your Details</h2>
+      <input type="file" id="profilePicInput" accept="image/*" class="mb-2 w-full"/>
+      <input type="text" id="userNameInput" placeholder="Enter your name" class="border p-2 mb-2 w-full rounded"/>
+      <input type="text" id="userPhoneInput" placeholder="Phone (optional)" class="border p-2 mb-2 w-full rounded"/>
+      <input type="text" id="userProfessionInput" placeholder="Profession (optional)" class="border p-2 mb-4 w-full rounded"/>
+      <button id="saveUserBtn" class="bg-blue-500 text-white px-4 py-2 rounded w-full">Save</button>
     </div>
+  </div>
 
-    <!-- Image View Modal -->
-    <div id="image-modal" class="fixed inset-0 p-4 bg-gray-900 bg-opacity-75 flex items-center justify-center transition-opacity duration-300 z-[100] hidden">
-        <div id="modal-content" class="bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col md:flex-row w-full max-w-5xl scale-95 transition-transform duration-300 overflow-y-auto max-h-full">
-            <!-- Image section -->
-            <div class="relative w-full md:w-1/2 flex items-center justify-center">
-                <img id="modal-image" class="w-full h-full object-contain rounded-t-lg md:rounded-l-lg md:rounded-t-none" alt="Selected Image">
-                <button id="close-image-modal" class="absolute top-4 right-4 bg-white bg-opacity-50 text-gray-800 rounded-full p-2 hover:bg-opacity-75 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-            <!-- User info and actions section -->
-            <div class="w-full md:w-1/2 p-6 flex flex-col justify-between">
-                <div>
-                    <h2 id="modal-title" class="text-2xl font-bold mb-4 text-gray-800"></h2>
-                    <div class="flex items-center space-x-4 mb-6">
-                        <img id="modal-profile-img" class="w-16 h-16 rounded-full object-cover shadow-lg" alt="User Profile Photo">
-                        <div>
-                            <p id="modal-profile-name" class="text-xl font-semibold text-gray-900"></p>
-                            <p id="modal-profile-profession" class="text-sm text-gray-500"></p>
-                            <p id="modal-profile-phone" class="text-sm text-gray-500"></p>
-                        </div>
-                    </div>
-                </div>
+  <!-- 🔹 Image Grid -->
+  <div id="gallery" class="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
 
-                <div class="mt-auto space-y-4">
-                    <button id="generate-button" class="w-full bg-red-600 text-white font-bold py-3 px-4 rounded-full hover:bg-red-700 transition-colors shadow-lg">Generate & Share</button>
-                    <div id="share-options" class="flex flex-col space-y-2 hidden">
-                        <button id="download-btn" class="w-full bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 transition-colors">Download JPG</button>
-                        <button id="share-btn" class="w-full bg-red-100 text-red-600 font-semibold py-2 px-4 rounded-full hover:bg-red-200 transition-colors">Share with Web Share API</button>
-                        <p id="web-share-unsupported" class="text-sm text-center text-gray-500 hidden">Your browser does not support the Web Share API.</p>
-                    </div>
-                </div>
-            </div>
+  <!-- 🔹 Image Modal -->
+  <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden">
+    <div id="modalContent" class="bg-white rounded-2xl p-4 max-w-lg w-full shadow-lg relative">
+      <button id="closeModal" class="absolute top-2 right-2 text-gray-500">✖</button>
+      
+      <!-- Image with overlay -->
+      <div class="relative">
+        <img id="modalImage" src="" class="rounded-xl mb-4 w-full"/>
+        <div class="absolute bottom-2 left-2 bg-white bg-opacity-80 rounded-lg p-2 flex items-center gap-2">
+          <img id="modalUserPic" src="" class="w-10 h-10 rounded-full border"/>
+          <p id="modalUserName" class="font-bold"></p>
         </div>
+      </div>
+
+      <!-- Extra Info -->
+      <p id="modalUserPhone" class="text-sm text-gray-500"></p>
+      <p id="modalUserProfession" class="text-sm text-gray-500"></p>
+
+      <!-- Buttons -->
+      <div class="flex gap-2 mt-4">
+        <button id="downloadBtn" class="bg-blue-500 text-white px-4 py-2 rounded w-1/2">Download</button>
+        <button id="shareBtn" class="bg-green-500 text-white px-4 py-2 rounded w-1/2">Share</button>
+      </div>
     </div>
+  </div>
 
+<script>
+// Images JSON directly in JS
+const images = [
+  { "id": 1, "url": "https://suvicharkatta.com/wp-content/uploads/2024/09/1-4-965x1024.png", "title": "Design 1" },
+  { "id": 2, "url": "https://i.pinimg.com/736x/9c/dc/d1/9cdcd1a80a1cc157afb5d87d97f5311f.jpg", "title": "Design 2" },
+  { "id": 3, "url": "https://i.pinimg.com/736x/2c/bd/f3/2cbdf3f3c222457fd53534fe37ba9ce5.jpg", "title": "Design 3" },
+  { "id": 4, "url": "https://i.pinimg.com/1200x/29/16/35/291635f45695c8d2fcb76708c2285649.jpg", "title": "Design 4" },
+  { "id": 5, "url": "https://i.pinimg.com/736x/cd/ac/5d/cdac5d6df9abeea497e396ab939adab9.jpg", "title": "Design 5" },
+  { "id": 6, "url": "https://i.pinimg.com/736x/38/3e/6b/383e6be36cc01f94393afab36e3eb745.jpg", "title": "Design 6" }
+];
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
+// Load gallery + user
+window.onload = () => {
+  const user = localStorage.getItem("userData");
+  if (!user) {
+    document.getElementById("userFormModal").classList.remove("hidden");
+  } else {
+    showProfile(JSON.parse(user));
+  }
 
-            // --- 1. Hardcoded images.json data (client-side simulation) ---
-            const images = [{
-                "id": 1,
-                "url": "https://i.pinimg.com/1200x/c6/24/e1/c624e135f7468f2ffb005407a4abd249.jpg",
-                "title": "Abstract Geometric"
-            }, {
-                "id": 2,
-                "url": "https://i.pinimg.com/736x/9c/dc/d1/9cdcd1a80a1cc157afb5d87d97f5311f.jpg",
-                "title": "Minimalist Landscape"
-            }, {
-                "id": 3,
-                "url": "https://i.pinimg.com/736x/2c/bd/f3/2cbdf3f3c222457fd53534fe37ba9ce5.jpg",
-                "title": "Pastel Color Swirls"
-            }, {
-                "id": 4,
-                "url": "https://i.pinimg.com/1200x/29/16/35/291635f45695c8d2fcb76708c2285649.jpg",
-                "title": "Retro Abstract Design"
-            }, {
-                "id": 5,
-                "url": "https://i.pinimg.com/736x/cd/ac/5d/cdac5d6df9abeea497e396ab939adab9.jpg",
-                "title": "Modern Art Piece"
-            }, {
-                "id": 6,
-                "url": "https://i.pinimg.com/736x/38/3e/6b/383e6be36cc01f94393afab36e3eb745.jpg",
-                "title": "Minimalist Pink & Blue"
-            }];
+  const gallery = document.getElementById("gallery");
+  images.forEach(img => {
+    const div = document.createElement("div");
+    div.innerHTML = `<img src="${img.url}" alt="${img.title}" 
+                      class="rounded-xl shadow-md cursor-pointer hover:opacity-90"/>`;
+    div.querySelector("img").addEventListener("click", () => openImageModal(img.url));
+    gallery.appendChild(div);
+  });
+};
 
-            const imageGrid = document.getElementById('image-grid');
-            const profileModal = document.getElementById('profile-modal');
-            const imageModal = document.getElementById('image-modal');
-            const profileForm = document.getElementById('profile-form');
-            const downloadBtn = document.getElementById('download-btn');
-            const shareBtn = document.getElementById('share-btn');
-            const webShareUnsupported = document.getElementById('web-share-unsupported');
+// Save user
+document.getElementById("saveUserBtn").addEventListener("click", () => {
+  const name = document.getElementById("userNameInput").value;
+  const phone = document.getElementById("userPhoneInput").value;
+  const profession = document.getElementById("userProfessionInput").value;
+  const picInput = document.getElementById("profilePicInput").files[0];
 
-            // --- 2. Load User Data and Render UI ---
-            let userData = JSON.parse(localStorage.getItem('pinterestUserData'));
+  if (!name || !picInput) {
+    alert("Name and profile picture required!");
+    return;
+  }
 
-            const showProfileModal = () => {
-                profileModal.classList.remove('hidden');
-                setTimeout(() => profileModal.querySelector('div').classList.remove('scale-95'), 10);
-            };
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const userData = { name, phone, profession, pic: e.target.result };
+    localStorage.setItem("userData", JSON.stringify(userData));
+    document.getElementById("userFormModal").classList.add("hidden");
+    showProfile(userData);
+  };
+  reader.readAsDataURL(picInput);
+});
 
-            const hideProfileModal = () => {
-                profileModal.querySelector('div').classList.add('scale-95');
-                setTimeout(() => profileModal.classList.add('hidden'), 300);
-            };
+// Show profile top-left
+function showProfile(user) {
+  document.getElementById("profileDisplay").classList.remove("hidden");
+  document.getElementById("profilePicDisplay").src = user.pic;
+  document.getElementById("profileNameDisplay").textContent = user.name;
+}
 
-            const updateProfileUI = () => {
-                if (userData) {
-                    document.getElementById('profile-display').classList.remove('hidden');
-                    document.getElementById('profile-img-header').src = userData.profilePhotoUrl || 'https://placehold.co/40x40/f1f1f1/cccccc?text=P';
-                    document.getElementById('profile-name-header').textContent = userData.name;
-                } else {
-                    document.getElementById('profile-display').classList.add('hidden');
-                }
-            };
+// Open image modal
+function openImageModal(url) {
+  const user = JSON.parse(localStorage.getItem("userData"));
+  if (!user) return alert("Please set your profile first!");
 
-            if (userData) {
-                updateProfileUI();
-            } else {
-                showProfileModal();
-            }
+  document.getElementById("modalImage").src = url;
+  document.getElementById("modalUserPic").src = user.pic;
+  document.getElementById("modalUserName").textContent = user.name;
+  document.getElementById("modalUserPhone").textContent = user.phone || "";
+  document.getElementById("modalUserProfession").textContent = user.profession || "";
 
-            profileForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const name = document.getElementById('name').value;
-                const phone = document.getElementById('phone').value;
-                const profession = document.getElementById('profession').value;
-                const profilePhotoFile = document.getElementById('profile-photo-input').files[0];
+  document.getElementById("imageModal").classList.remove("hidden");
+}
 
-                if (profilePhotoFile) {
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                        userData = { name, profilePhotoUrl: reader.result, phone, profession };
-                        localStorage.setItem('pinterestUserData', JSON.stringify(userData));
-                        updateProfileUI();
-                        hideProfileModal();
-                    };
-                    reader.readAsDataURL(profilePhotoFile);
-                } else {
-                    userData = { name, profilePhotoUrl: null, phone, profession };
-                    localStorage.setItem('pinterestUserData', JSON.stringify(userData));
-                    updateProfileUI();
-                    hideProfileModal();
-                }
-            });
+// Close modal
+document.getElementById("closeModal").addEventListener("click", () => {
+  document.getElementById("imageModal").classList.add("hidden");
+});
 
+// Download
+document.getElementById("downloadBtn").addEventListener("click", () => {
+  const modal = document.getElementById("modalContent");
+  html2canvas(modal).then(canvas => {
+    const link = document.createElement("a");
+    link.href = canvas.toDataURL("image/jpeg");
+    link.download = "generated-image.jpg";
+    link.click();
+  });
+});
 
-            // --- 3. Dynamic Masonry Grid Rendering ---
-            const renderImages = (images) => {
-                imageGrid.innerHTML = '';
-                images.forEach(image => {
-                    const card = document.createElement('div');
-                    card.classList.add('masonry-grid-item', 'relative', 'group', 'cursor-pointer', 'rounded-lg', 'overflow-hidden');
-                    card.innerHTML = `
-                        <img src="${image.url}" alt="${image.title}" class="w-full h-auto rounded-lg shadow-md transition-transform duration-300 group-hover:scale-105">
-                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 rounded-lg"></div>
-                    `;
-                    card.onclick = () => showImageModal(image);
-                    imageGrid.appendChild(card);
-                });
-            };
+// Share
+document.getElementById("shareBtn").addEventListener("click", () => {
+  const modal = document.getElementById("modalContent");
+  html2canvas(modal).then(canvas => {
+    canvas.toBlob(blob => {
+      const file = new File([blob], "shared-image.jpg", { type: "image/jpeg" });
 
-            renderImages(images);
-
-
-            // --- 4. Image Modal Logic ---
-            const showImageModal = (image) => {
-                if (!userData) {
-                    alert('Please save your profile first!');
-                    showProfileModal();
-                    return;
-                }
-                document.getElementById('modal-image').src = image.url;
-                document.getElementById('modal-title').textContent = image.title;
-                document.getElementById('modal-profile-img').src = userData.profilePhotoUrl || 'https://placehold.co/64x64/f1f1f1/cccccc?text=P';
-                document.getElementById('modal-profile-name').textContent = userData.name;
-                document.getElementById('modal-profile-profession').textContent = userData.profession ? `Profession: ${userData.profession}` : '';
-                document.getElementById('modal-profile-phone').textContent = userData.phone ? `Phone: ${userData.phone}` : '';
-                
-                // Show modal
-                imageModal.classList.remove('hidden');
-                setTimeout(() => imageModal.querySelector('div').classList.remove('scale-95'), 10);
-            };
-
-            const hideImageModal = () => {
-                imageModal.querySelector('div').classList.add('scale-95');
-                setTimeout(() => {
-                    imageModal.classList.add('hidden');
-                    // Reset visibility of share options
-                    document.getElementById('share-options').classList.add('hidden');
-                }, 300);
-            };
-
-            document.getElementById('close-image-modal').addEventListener('click', hideImageModal);
-
-            // --- 5. Generate and Share Logic ---
-            document.getElementById('generate-button').addEventListener('click', () => {
-                document.getElementById('share-options').classList.remove('hidden');
-            });
-
-            downloadBtn.addEventListener('click', () => {
-                const modalContent = document.getElementById('modal-content');
-                html2canvas(modalContent, {
-                    useCORS: true,
-                    allowTaint: true,
-                    backgroundColor: '#ffffff'
-                }).then(canvas => {
-                    const link = document.createElement('a');
-                    link.download = 'pinterest-share.jpg';
-                    link.href = canvas.toDataURL('image/jpeg', 0.9);
-                    link.click();
-                });
-            });
-
-            shareBtn.addEventListener('click', async () => {
-                const modalContent = document.getElementById('modal-content');
-                const canvas = await html2canvas(modalContent, {
-                    useCORS: true,
-                    allowTaint: true,
-                    backgroundColor: '#ffffff'
-                });
-
-                const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-                const blob = await (await fetch(dataUrl)).blob();
-                const file = new File([blob], 'pinterest-share.jpg', { type: 'image/jpeg' });
-
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    try {
-                        await navigator.share({
-                            files: [file],
-                            title: 'Check out this design!',
-                            text: 'Generated with my Pinterest-style web app.'
-                        });
-                    } catch (error) {
-                        console.error('Sharing failed:', error);
-                    }
-                } else {
-                    webShareUnsupported.classList.remove('hidden');
-                }
-            });
-        });
-    </script>
+      if (navigator.share) {
+        navigator.share({
+          files: [file],
+          title: "Shared Image",
+          text: "Check this out!"
+        }).catch(console.error);
+      } else {
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(file);
+        link.download = "shared-image.jpg";
+        link.click();
+      }
+    });
+  });
+});
+</script>
 </body>
 </html>
