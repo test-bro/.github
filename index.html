@@ -2,170 +2,147 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Pinterest Style WebApp</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pinterest Style Webapp</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body class="bg-gray-100">
 
-  <!-- 🔹 Top Left Profile -->
-  <div id="profileDisplay" class="fixed top-4 left-4 bg-white shadow-lg p-2 rounded-xl flex items-center gap-2 hidden">
-    <img id="profilePicDisplay" class="w-10 h-10 rounded-full border"/>
-    <span id="profileNameDisplay" class="font-semibold"></span>
+  <!-- Profile (top-left) -->
+  <div id="profileDisplay" class="fixed top-4 left-4 flex items-center space-x-2 bg-white shadow-lg p-2 rounded-lg hidden z-50">
+    <img id="profilePicSmall" class="w-10 h-10 rounded-full border">
+    <span id="profileNameSmall" class="font-semibold"></span>
   </div>
 
-  <!-- 🔹 User Form Modal (first visit) -->
-  <div id="userFormModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-    <div class="bg-white p-6 rounded-2xl w-96 shadow-lg">
-      <h2 class="text-xl font-bold mb-4">Enter Your Details</h2>
-      <input type="file" id="profilePicInput" accept="image/*" class="mb-2 w-full"/>
-      <input type="text" id="userNameInput" placeholder="Enter your name" class="border p-2 mb-2 w-full rounded"/>
-      <input type="text" id="userPhoneInput" placeholder="Phone (optional)" class="border p-2 mb-2 w-full rounded"/>
-      <input type="text" id="userProfessionInput" placeholder="Profession (optional)" class="border p-2 mb-4 w-full rounded"/>
-      <button id="saveUserBtn" class="bg-blue-500 text-white px-4 py-2 rounded w-full">Save</button>
+  <!-- Image Grid -->
+  <div id="imageGrid" class="columns-2 md:columns-3 gap-3 p-4"></div>
+
+  <!-- User Form -->
+  <div id="userForm" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-xl shadow-lg space-y-3 w-80">
+      <h2 class="text-lg font-bold">Enter Your Info</h2>
+      <input id="name" type="text" placeholder="Your Name" class="w-full border p-2 rounded">
+      <input id="phone" type="text" placeholder="Phone (optional)" class="w-full border p-2 rounded">
+      <input id="profession" type="text" placeholder="Profession (optional)" class="w-full border p-2 rounded">
+      <input id="photo" type="file" accept="image/*" class="w-full border p-2 rounded">
+      <button onclick="saveUser()" class="bg-blue-500 text-white px-4 py-2 rounded w-full">Save</button>
     </div>
   </div>
 
-  <!-- 🔹 Image Grid -->
-  <div id="gallery" class="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
-
-  <!-- 🔹 Image Modal -->
-  <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden">
-    <div id="modalContent" class="bg-white rounded-2xl p-4 max-w-lg w-full shadow-lg relative">
-      <button id="closeModal" class="absolute top-2 right-2 text-gray-500">✖</button>
-      
-      <!-- Image with overlay -->
-      <div class="relative">
-        <img id="modalImage" src="" class="rounded-xl mb-4 w-full"/>
-        <div class="absolute bottom-2 left-2 bg-white bg-opacity-80 rounded-lg p-2 flex items-center gap-2">
-          <img id="modalUserPic" src="" class="w-10 h-10 rounded-full border"/>
-          <p id="modalUserName" class="font-bold"></p>
+  <!-- Modal -->
+  <div id="modal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-40">
+    <div class="bg-white rounded-xl shadow-lg max-w-md w-full relative p-4">
+      <button onclick="closeModal()" class="absolute top-2 right-2 text-gray-700">✕</button>
+      <div id="captureArea" class="relative">
+        <img id="modalImage" class="w-full rounded-lg" crossorigin="anonymous">
+        <!-- Overlay user info -->
+        <div class="absolute top-2 left-2 flex items-center space-x-2 bg-white px-2 py-1 rounded shadow">
+          <img id="modalProfilePic" class="w-8 h-8 rounded-full border">
+          <div>
+            <p id="modalProfileName" class="font-semibold text-sm"></p>
+            <p id="modalProfileExtra" class="text-xs text-gray-600"></p>
+          </div>
         </div>
       </div>
-
-      <!-- Extra Info -->
-      <p id="modalUserPhone" class="text-sm text-gray-500"></p>
-      <p id="modalUserProfession" class="text-sm text-gray-500"></p>
-
-      <!-- Buttons -->
-      <div class="flex gap-2 mt-4">
-        <button id="downloadBtn" class="bg-blue-500 text-white px-4 py-2 rounded w-1/2">Download</button>
-        <button id="shareBtn" class="bg-green-500 text-white px-4 py-2 rounded w-1/2">Share</button>
+      <div class="flex space-x-2 mt-4">
+        <button onclick="downloadImage()" class="flex-1 bg-blue-500 text-white py-2 rounded">Download</button>
+        <button onclick="shareImage()" class="flex-1 bg-green-500 text-white py-2 rounded">Share</button>
       </div>
     </div>
   </div>
 
 <script>
-// Images JSON directly in JS
 const images = [
-  { "id": 1, "url": "https://suvicharkatta.com/wp-content/uploads/2024/09/1-4-965x1024.png", "title": "Design 1" },
-  { "id": 2, "url": "https://i.pinimg.com/736x/9c/dc/d1/9cdcd1a80a1cc157afb5d87d97f5311f.jpg", "title": "Design 2" },
-  { "id": 3, "url": "https://i.pinimg.com/736x/2c/bd/f3/2cbdf3f3c222457fd53534fe37ba9ce5.jpg", "title": "Design 3" },
-  { "id": 4, "url": "https://i.pinimg.com/1200x/29/16/35/291635f45695c8d2fcb76708c2285649.jpg", "title": "Design 4" },
-  { "id": 5, "url": "https://i.pinimg.com/736x/cd/ac/5d/cdac5d6df9abeea497e396ab939adab9.jpg", "title": "Design 5" },
-  { "id": 6, "url": "https://i.pinimg.com/736x/38/3e/6b/383e6be36cc01f94393afab36e3eb745.jpg", "title": "Design 6" }
+  {url: "images/img1.jpg"},
+  {url: "images/img2.jpg"},
+  {url: "images/img3.jpg"},
+  {url: "images/img4.jpg"},
+  {url: "images/img5.jpg"},
+  {url: "images/img6.jpg"}
 ];
 
-// Load gallery + user
-window.onload = () => {
-  const user = localStorage.getItem("userData");
-  if (!user) {
-    document.getElementById("userFormModal").classList.remove("hidden");
-  } else {
-    showProfile(JSON.parse(user));
-  }
+let userData = JSON.parse(localStorage.getItem("userData")) || null;
 
-  const gallery = document.getElementById("gallery");
-  images.forEach(img => {
-    const div = document.createElement("div");
-    div.innerHTML = `<img src="${img.url}" alt="${img.title}" 
-                      class="rounded-xl shadow-md cursor-pointer hover:opacity-90"/>`;
-    div.querySelector("img").addEventListener("click", () => openImageModal(img.url));
-    gallery.appendChild(div);
+function renderGrid() {
+  const grid = document.getElementById("imageGrid");
+  grid.innerHTML = "";
+  images.forEach((img) => {
+    const el = document.createElement("img");
+    el.src = img.url;
+    el.crossOrigin = "anonymous";
+    el.className = "mb-3 w-full rounded-lg cursor-pointer hover:opacity-80";
+    el.onclick = () => openModal(img.url);
+    grid.appendChild(el);
   });
-};
+}
 
-// Save user
-document.getElementById("saveUserBtn").addEventListener("click", () => {
-  const name = document.getElementById("userNameInput").value;
-  const phone = document.getElementById("userPhoneInput").value;
-  const profession = document.getElementById("userProfessionInput").value;
-  const picInput = document.getElementById("profilePicInput").files[0];
-
-  if (!name || !picInput) {
-    alert("Name and profile picture required!");
-    return;
-  }
+function saveUser() {
+  const name = document.getElementById("name").value;
+  const phone = document.getElementById("phone").value;
+  const profession = document.getElementById("profession").value;
+  const photoFile = document.getElementById("photo").files[0];
+  if (!name || !photoFile) return alert("Name and photo required!");
 
   const reader = new FileReader();
-  reader.onload = function (e) {
-    const userData = { name, phone, profession, pic: e.target.result };
+  reader.onload = () => {
+    userData = {name, phone, profession, photo: reader.result};
     localStorage.setItem("userData", JSON.stringify(userData));
-    document.getElementById("userFormModal").classList.add("hidden");
-    showProfile(userData);
+    document.getElementById("userForm").classList.add("hidden");
+    showProfile();
   };
-  reader.readAsDataURL(picInput);
-});
+  reader.readAsDataURL(photoFile);
+}
 
-// Show profile top-left
-function showProfile(user) {
+function showProfile() {
+  if (!userData) return;
   document.getElementById("profileDisplay").classList.remove("hidden");
-  document.getElementById("profilePicDisplay").src = user.pic;
-  document.getElementById("profileNameDisplay").textContent = user.name;
+  document.getElementById("profilePicSmall").src = userData.photo;
+  document.getElementById("profileNameSmall").innerText = userData.name;
 }
 
-// Open image modal
-function openImageModal(url) {
-  const user = JSON.parse(localStorage.getItem("userData"));
-  if (!user) return alert("Please set your profile first!");
-
+function openModal(url) {
+  document.getElementById("modal").classList.remove("hidden");
   document.getElementById("modalImage").src = url;
-  document.getElementById("modalUserPic").src = user.pic;
-  document.getElementById("modalUserName").textContent = user.name;
-  document.getElementById("modalUserPhone").textContent = user.phone || "";
-  document.getElementById("modalUserProfession").textContent = user.profession || "";
-
-  document.getElementById("imageModal").classList.remove("hidden");
+  document.getElementById("modalProfilePic").src = userData.photo;
+  document.getElementById("modalProfileName").innerText = userData.name;
+  document.getElementById("modalProfileExtra").innerText = 
+    [userData.phone, userData.profession].filter(Boolean).join(" • ");
 }
 
-// Close modal
-document.getElementById("closeModal").addEventListener("click", () => {
-  document.getElementById("imageModal").classList.add("hidden");
-});
+function closeModal() {
+  document.getElementById("modal").classList.add("hidden");
+}
 
-// Download
-document.getElementById("downloadBtn").addEventListener("click", () => {
-  const modal = document.getElementById("modalContent");
-  html2canvas(modal).then(canvas => {
-    const link = document.createElement("a");
-    link.href = canvas.toDataURL("image/jpeg");
-    link.download = "generated-image.jpg";
-    link.click();
-  });
-});
+async function downloadImage() {
+  const capture = document.getElementById("captureArea");
+  const canvas = await html2canvas(capture, {useCORS: true, allowTaint: true});
+  const link = document.createElement("a");
+  link.download = "generated-image.jpg";
+  link.href = canvas.toDataURL("image/jpeg");
+  link.click();
+}
 
-// Share
-document.getElementById("shareBtn").addEventListener("click", () => {
-  const modal = document.getElementById("modalContent");
-  html2canvas(modal).then(canvas => {
-    canvas.toBlob(blob => {
-      const file = new File([blob], "shared-image.jpg", { type: "image/jpeg" });
+async function shareImage() {
+  const capture = document.getElementById("captureArea");
+  const canvas = await html2canvas(capture, {useCORS: true, allowTaint: true});
+  canvas.toBlob(blob => {
+    const file = new File([blob], "generated.jpg", {type: "image/jpeg"});
+    if (navigator.share) {
+      navigator.share({files: [file]});
+    } else {
+      alert("Sharing not supported, use Download instead.");
+    }
+  }, "image/jpeg");
+}
 
-      if (navigator.share) {
-        navigator.share({
-          files: [file],
-          title: "Shared Image",
-          text: "Check this out!"
-        }).catch(console.error);
-      } else {
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(file);
-        link.download = "shared-image.jpg";
-        link.click();
-      }
-    });
-  });
-});
+window.onload = () => {
+  renderGrid();
+  if (userData) {
+    document.getElementById("userForm").classList.add("hidden");
+    showProfile();
+  }
+};
 </script>
 </body>
 </html>
