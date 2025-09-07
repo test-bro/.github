@@ -1,158 +1,330 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pinterest Style Webapp</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <meta charset="UTF-8">
+    <title>Pinterest Style Poster Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Meow+Script&family=Roboto+Slab:wght@400;700&family=Kanit:wght@400;700&family=Montserrat:wght@400;700&family=Josefin+Sans:wght@400;700&family=Playfair+Display:wght@400;700&family=Oswald:wght@400;700&family=Lato:wght@400;700&family=Merriweather:wght@400;700&family=Noto+Sans:wght@400;700&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Base styles for the modal content */
+        #modal .bg-white {
+            max-width: 280px;
+            width: 90%;
+            padding: 5px;
+        }
+        /* Custom styles for the profile image border */
+        .profile-border {
+            position: relative;
+            width: 5rem;
+            height: 5rem;
+            border-radius: 9999px;
+            border: 2px solid white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .profile-border::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border-radius: 9999px;
+            border: 2px solid #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+        .profile-icon {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background-color: #f7a32b;
+            color: white;
+            border-radius: 9999px;
+            padding: 4px;
+            font-size: 0.75rem;
+            transform: translate(25%, 25%);
+            border: 2px solid white;
+        }
+        .drag-highlight {
+            border: 2px dashed #3B82F6;
+        }
+    </style>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-100 font-sans">
 
-  <!-- Profile (top-left) -->
-  <div id="profileDisplay" class="fixed top-4 left-4 flex items-center space-x-2 bg-white shadow-lg p-2 rounded-lg hidden z-50">
-    <img id="profilePicSmall" class="w-10 h-10 rounded-full border">
-    <span id="profileNameSmall" class="font-semibold"></span>
-  </div>
-
-  <!-- Image Grid -->
-  <div id="imageGrid" class="columns-2 md:columns-3 gap-3 p-4"></div>
-
-  <!-- User Form -->
-  <div id="userForm" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white p-6 rounded-xl shadow-lg space-y-3 w-80">
-      <h2 class="text-lg font-bold">Enter Your Info</h2>
-      <input id="name" type="text" placeholder="Your Name" class="w-full border p-2 rounded">
-      <input id="phone" type="text" placeholder="Phone (optional)" class="w-full border p-2 rounded">
-      <input id="profession" type="text" placeholder="Profession (optional)" class="w-full border p-2 rounded">
-      <input id="photo" type="file" accept="image/*" class="w-full border p-2 rounded">
-      <button onclick="saveUser()" class="bg-blue-500 text-white px-4 py-2 rounded w-full">Save</button>
+<!-- Gallery -->
+<div class="columns-2 md:columns-3 lg:columns-4 gap-3 p-4" id="gallery">
+    <!-- Naye images drag aur drop karne ke liye ek guide -->
+    <div class-="col-span-full text-center text-gray-500 font-bold text-lg p-10 border-4 border-dashed border-gray-300 rounded-lg">
+        Drag and Drop Images Here
     </div>
-  </div>
+</div>
 
-  <!-- Modal -->
-  <div id="modal" class="fixed inset-0 bg-black bg-opacity-70 hidden z-40 flex items-center justify-center">
-    <div class="bg-white rounded-xl shadow-xl max-w-md w-full relative p-4 flex flex-col items-center">
-      <!-- Close Button -->
-      <button onclick="closeModal()" class="absolute top-2 right-2 text-gray-700 hover:text-red-500 text-lg">✕</button>
+<!-- Modal -->
+<div id="modal" class="fixed inset-0 bg-black bg-opacity-70 hidden z-40 flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-xl relative p-4 flex flex-col items-center">
 
-      <!-- Image (centered) -->
-      <div id="captureArea" class="w-full flex flex-col items-center">
-        <img id="modalImage" class="w-full rounded-xl shadow-md" crossorigin="anonymous">
+        <!-- Close button -->
+        <button onclick="closeModal()"
+            class="absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-lg rounded-full w-10 h-10 flex items-center justify-center shadow-md z-50">✕</button>
 
-        <!-- User info below image -->
-        <div class="mt-4 flex items-center space-x-3 w-full">
-          <img id="modalProfilePic" class="w-12 h-12 rounded-full border-2 border-blue-400 shadow-md">
-          <div>
-            <p id="modalProfileName" class="font-semibold text-base text-gray-800"></p>
-            <p id="modalProfileExtra" class="text-sm text-gray-500"></p>
-          </div>
+        <!-- Image and Merged Profile Section -->
+        <div id="captureArea" class="relative w-full flex flex-col items-center">
+            <img id="modalImage" class="w-full" crossorigin="anonymous">
+
+            <!-- User profile section as an overlay at the bottom -->
+            <div id="profileOverlay" class="w-full flex items-center p-0.5 shadow-md">
+                <div class="relative">
+                    <img id="modalProfilePic" class="w-12 h-12 rounded-full border-2 border-white shadow-md">
+                    <!-- This is the new drag-and-drop icon area -->
+                    <div id="dragDropIconArea" class="absolute top-0 right-0 w-8 h-8 rounded-full flex items-center justify-center transform translate-x-1/2 -translate-y-1/2">
+                        <i id="profileIcon" class="fas fa-seedling text-white"></i>
+                    </div>
+                </div>
+                <div class="ml-1 text-white">
+                    <p id="modalProfileName" class="font-semibold text-sm mt-"></p>
+                    <p id="modalProfileExtra" class="text-sm opacity-90 ">Web Developer
+                    </p>
+                    <p id="modalProfileContact" class="text-xs opacity-90 mb-2 ">
+                    9876543210
+                    </p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Buttons -->
-      <div class="flex space-x-3 mt-6 w-full">
-        <button onclick="downloadImage()" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg shadow-md transition">
-          ⬇️ Download
-        </button>
-        <button onclick="shareImage()" class="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg shadow-md transition">
-          📤 Share
-        </button>
-      </div>
+        <!-- Right-side buttons -->
+        <div class="absolute right-0 top-1/2 -translate-y-1/2 flex flex-col space-y-3 p-2 z-50">
+            <button onclick="downloadImage()" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full shadow-md transition">⬇️</button>
+            <button onclick="shareImage()" class="bg-green-500 hover:bg-green-600 text-white p-2 rounded-full shadow-md transition">📤</button>
+            <button onclick="changeProfileIcon()" class="bg-yellow-500 hover:bg-yellow-600 text-white p-2 rounded-full shadow-md transition">🎨</button>
+            <button onclick="changeFont()" class="bg-purple-500 hover:bg-purple-600 text-white p-2 rounded-full shadow-md transition">Aa</button>
+        </div>
     </div>
-  </div>
+</div>
 
 <script>
 const images = [
-  {url: "images/img1.jpg"},
-  {url: "images/img2.jpg"},
-  {url: "images/img3.jpg"},
-  {url: "images/img4.jpg"},
-  {url: "images/img5.jpg"},
-  {url: "images/img6.jpg"}
+    "https://placehold.co/600x800/FFA500/FFFFFF?text=Poster+1",
+    "https://placehold.co/600x800/87CEEB/FFFFFF?text=Poster+2",
+    "https://placehold.co/600x800/90EE90/FFFFFF?text=Poster+3",
+    "https://placehold.co/600x800/FFB6C1/FFFFFF?text=Poster+4",
+    "https://placehold.co/600x800/ADD8E6/FFFFFF?text=Poster+5"
 ];
 
-let userData = JSON.parse(localStorage.getItem("userData")) || null;
+// Dummy user (replace with localStorage data)
+const user = {
+    name: "Niraj Sidar",
+    extra: "Web Developer",
+    pic: "https://placehold.co/100x100/90EE90/FFFFFF?text=RS"
+};
 
-function renderGrid() {
-  const grid = document.getElementById("imageGrid");
-  grid.innerHTML = "";
-  images.forEach((img) => {
-    const el = document.createElement("img");
-    el.src = img.url;
-    el.crossOrigin = "anonymous";
-    el.className = "mb-3 w-full rounded-lg cursor-pointer hover:opacity-80 shadow";
-    el.onclick = () => openModal(img.url);
-    grid.appendChild(el);
-  });
+let currentIconIndex = 0;
+const icons = ['fa-seedling', 'fa-star', 'fa-heart', 'fa-cogs', 'fa-sun'];
+
+let currentFontIndex = 0;
+const fonts = [
+    'Poppins',
+    'Meow Script',
+    'Roboto Slab',
+    'Kanit',
+    'Montserrat',
+    'Josefin Sans',
+    'Playfair Display',
+    'Oswald',
+    'Lato',
+    'Merriweather',
+    'Noto Sans',
+    'Open Sans'
+];
+
+// Drag and Drop for gallery
+const gallery = document.getElementById('gallery');
+
+gallery.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    gallery.classList.add('border-blue-500');
+});
+
+gallery.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    gallery.classList.remove('border-blue-500');
+});
+
+gallery.addEventListener('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    gallery.classList.remove('border-blue-500');
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            if (file.type.startsWith('image/')) {
+                const imageUrl = URL.createObjectURL(file);
+                images.push(imageUrl);
+            }
+        }
+        loadGallery();
+    }
+});
+
+// Drag and Drop for profile icon
+const dragDropIconArea = document.getElementById('dragDropIconArea');
+
+dragDropIconArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragDropIconArea.classList.add('drag-highlight');
+});
+
+dragDropIconArea.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragDropIconArea.classList.remove('drag-highlight');
+});
+
+dragDropIconArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragDropIconArea.classList.remove('drag-highlight');
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0 && files[0].type.startsWith('image/')) {
+        const file = files[0];
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = document.createElement('img');
+            img.src = event.target.result;
+            img.className = "w-full h-full object-cover rounded-full";
+            
+            // Remove the Font Awesome icon and add the image
+            const profileIcon = document.getElementById("profileIcon");
+            if (profileIcon) {
+                profileIcon.remove();
+            }
+            dragDropIconArea.innerHTML = '';
+            dragDropIconArea.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+function changeProfileIcon() {
+    const profileIcon = document.getElementById("profileIcon");
+    
+    // Check if an image was already dropped
+    if (dragDropIconArea.querySelector('img')) {
+        console.log("Custom image is already in place. Theme button will not change the icon.");
+        return;
+    }
+    
+    currentIconIndex = (currentIconIndex + 1) % icons.length;
+    if (profileIcon) {
+        profileIcon.className = '';
+        profileIcon.classList.add('fas', icons[currentIconIndex], 'text-white');
+    }
 }
 
-function saveUser() {
-  const name = document.getElementById("name").value;
-  const phone = document.getElementById("phone").value;
-  const profession = document.getElementById("profession").value;
-  const photoFile = document.getElementById("photo").files[0];
-  if (!name || !photoFile) return alert("Name and photo required!");
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    userData = {name, phone, profession, photo: reader.result};
-    localStorage.setItem("userData", JSON.stringify(userData));
-    document.getElementById("userForm").classList.add("hidden");
-    showProfile();
-  };
-  reader.readAsDataURL(photoFile);
+function changeFont() {
+    const profileName = document.getElementById('modalProfileName');
+    const profileExtra = document.getElementById('modalProfileExtra');
+    currentFontIndex = (currentFontIndex + 1) % fonts.length;
+    profileName.style.fontFamily = fonts[currentFontIndex];
+    profileExtra.style.fontFamily = fonts[currentFontIndex];
 }
 
-function showProfile() {
-  if (!userData) return;
-  document.getElementById("profileDisplay").classList.remove("hidden");
-  document.getElementById("profilePicSmall").src = userData.photo;
-  document.getElementById("profileNameSmall").innerText = userData.name;
+function loadGallery() {
+    gallery.innerHTML = '';
+    images.forEach(src => {
+        let img = document.createElement("img");
+        img.src = src;
+        img.className = "mb-3 w-full rounded-lg shadow cursor-pointer hover:opacity-80";
+        img.onclick = () => openModal(src);
+        gallery.appendChild(img);
+    });
 }
 
-function openModal(url) {
-  document.getElementById("modal").classList.remove("hidden");
-  document.getElementById("modalImage").src = url;
-  document.getElementById("modalProfilePic").src = userData.photo;
-  document.getElementById("modalProfileName").innerText = userData.name;
-  document.getElementById("modalProfileExtra").innerText = 
-    [userData.phone, userData.profession].filter(Boolean).join(" • ");
+function getDominantColor(img) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img, 0, 0, img.width, img.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    let colorCount = {};
+    for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const rgb = `rgb(${r},${g},${b})`;
+        if (colorCount[rgb]) {
+            colorCount[rgb]++;
+        } else {
+            colorCount[rgb] = 1;
+        }
+    }
+    let dominantColor = '';
+    let maxCount = 0;
+    for (const color in colorCount) {
+        if (colorCount[color] > maxCount) {
+            maxCount = colorCount[color];
+            dominantColor = color;
+        }
+    }
+    return dominantColor;
+}
+
+function openModal(src) {
+    const modalImage = document.getElementById("modalImage");
+    modalImage.src = src;
+    modalImage.onload = () => {
+        const dominantColor = getDominantColor(modalImage);
+        const profileOverlay = document.getElementById("profileOverlay");
+        profileOverlay.style.background = `linear-gradient(to bottom, ${dominantColor}, rgba(0,0,0,0.8))`;
+    };
+    document.getElementById("modalProfilePic").src = user.pic;
+    document.getElementById("modalProfileName").innerText = user.name;
+    document.getElementById("modalProfileExtra").innerText = user.extra;
+    document.getElementById("modal").classList.remove("hidden");
 }
 
 function closeModal() {
-  document.getElementById("modal").classList.add("hidden");
+    document.getElementById("modal").classList.add("hidden");
 }
 
-async function downloadImage() {
-  const capture = document.getElementById("captureArea");
-  const canvas = await html2canvas(capture, {useCORS: true, allowTaint: true});
-  const link = document.createElement("a");
-  link.download = "generated-image.jpg";
-  link.href = canvas.toDataURL("image/jpeg");
-  link.click();
+function downloadImage() {
+    html2canvas(document.querySelector("#captureArea")).then(canvas => {
+        let link = document.createElement("a");
+        link.download = "poster.png";
+        link.href = canvas.toDataURL();
+        link.click();
+    });
 }
 
-async function shareImage() {
-  const capture = document.getElementById("captureArea");
-  const canvas = await html2canvas(capture, {useCORS: true, allowTaint: true});
-  canvas.toBlob(blob => {
-    const file = new File([blob], "generated.jpg", {type: "image/jpeg"});
-    if (navigator.share) {
-      navigator.share({files: [file]});
-    } else {
-      alert("Sharing not supported, use Download instead.");
-    }
-  }, "image/jpeg");
+function shareImage() {
+    html2canvas(document.querySelector("#captureArea")).then(canvas => {
+        canvas.toBlob(blob => {
+            const file = new File([blob], "poster.png", { type: "image/png" });
+            if (navigator.share) {
+                navigator.share({
+                    title: "Check this Poster",
+                    files: [file]
+                });
+            } else {
+                alert("Sharing not supported on this browser.");
+            }
+        });
+    });
 }
 
-window.onload = () => {
-  renderGrid();
-  if (userData) {
-    document.getElementById("userForm").classList.add("hidden");
-    showProfile();
-  }
-};
+loadGallery();
 </script>
+
 </body>
 </html>
